@@ -1,6 +1,6 @@
-import { resolveRouteColor } from "@/lib/color/resolve"
 "use client"
 
+import { resolveRouteColor } from "@/lib/color/resolve"
 import { useState, useMemo, useCallback } from "react"
 import {
   Search,
