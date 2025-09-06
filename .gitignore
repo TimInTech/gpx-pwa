@@ -1,0 +1,19 @@
+# Node/Next
+node_modules/
+.next/
+out/
+.vercel/
+npm-debug.log*
+yarn-error.log*
+
+# Env/Secrets
+.env
+.env.local
+.env*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build-Artefakte
+public/parse.worker.js
