@@ -395,21 +395,21 @@ export function RouteManagement({ routes, onRoutesChange, isLoading }: RouteMana
                           </div>
 
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            {route.stats.distance_km && (
+                            { Number.isFinite(route.stats?.distance_km as number) && (
                               <div className="flex items-center gap-1">
                                 <MapPin className="h-3 w-3" />
-                                {route.stats.distance_km.toFixed(1)} km
+                                {(route.stats?.distance_km as number).toFixed(1)} km
                               </div>
                             )}
-                            {route.stats.duration_h && (
+                            { Number.isFinite(route.stats?.duration_h as number) && (
                               <div className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                {route.stats.duration_h.toFixed(1)}h
+                                {(route.stats?.duration_h as number).toFixed(1)}h
                               </div>
                             )}
-                            {route.stats.elevation_gain && (
+                            { Number.isFinite(route.stats?.elevation_gain as number) && (
                               <div className="flex items-center gap-1">
-                                <TrendingUp className="h-3 w-3" />+{Math.round(route.stats.elevation_gain)}m
+                                <TrendingUp className="h-3 w-3" />+{Math.round(Number(route.stats?.elevation_gain))}m
                               </div>
                             )}
                             {route.date && (
@@ -518,27 +518,27 @@ function RouteDetailsDialog({ route, onClose }: { route: Route; onClose: () => v
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {route.stats.distance_km && (
+            { Number.isFinite(route.stats?.distance_km as number) && (
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{route.stats.distance_km.toFixed(1)}</div>
+                <div className="text-2xl font-bold text-primary">{(route.stats?.distance_km as number).toFixed(1)}</div>
                 <div className="text-sm text-muted-foreground">km</div>
               </div>
             )}
-            {route.stats.duration_h && (
+            { Number.isFinite(route.stats?.duration_h as number) && (
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{route.stats.duration_h.toFixed(1)}</div>
+                <div className="text-2xl font-bold text-primary">{(route.stats?.duration_h as number).toFixed(1)}</div>
                 <div className="text-sm text-muted-foreground">Stunden</div>
               </div>
             )}
-            {route.stats.elevation_gain && (
+            { Number.isFinite(route.stats?.elevation_gain as number) && (
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{Math.round(route.stats.elevation_gain)}</div>
+                <div className="text-2xl font-bold text-primary">{Math.round(Number(route.stats?.elevation_gain))}</div>
                 <div className="text-sm text-muted-foreground">m Aufstieg</div>
               </div>
             )}
-            {route.stats.avg_speed && (
+            { Number.isFinite(route.stats?.avg_speed as number) && (
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{route.stats.avg_speed.toFixed(1)}</div>
+                <div className="text-2xl font-bold text-primary">{(route.stats?.avg_speed as number).toFixed(1)}</div>
                 <div className="text-sm text-muted-foreground">km/h</div>
               </div>
             )}
