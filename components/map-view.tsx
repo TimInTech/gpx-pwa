@@ -15,42 +15,29 @@ export default function MapView({ routes, className }: Props) {
   const roRef = useRef<ResizeObserver | null>(null)
   const winResizeRef = useRef<(() => void) | null>(null)
 
+  // einmalige Initialisierung
   useEffect(() => {
     let cancelled = false
 
     const ensureLeafletCSS = () =>
     new Promise<void>((resolve) => {
       const id = "leaflet-css"
-      const href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       if (document.getElementById(id)) return resolve()
         const link = document.createElement("link")
         link.id = id
         link.rel = "stylesheet"
-        link.href = href
+        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         link.onload = () => resolve()
         link.onerror = () => resolve()
         document.head.appendChild(link)
     })
-
-    const cleanupLeafletContainer = (el: HTMLElement) => {
-      // falls Leaflet bereits Marker-Klassen/Props gesetzt hat
-      el.classList.remove("leaflet-container", "leaflet-touch", "leaflet-fade-anim", "leaflet-grab", "leaflet-touch-drag", "leaflet-touch-zoom")
-      el.innerHTML = ""
-      try {
-        // Leaflet markiert DOM-Nodes mit _leaflet_id
-        // @ts-ignore
-        if (el._leaflet_id) delete (el as any)._leaflet_id
-      } catch {}
-    }
 
     const safeInvalidate = () => {
       const el = hostRef.current
       const m = mapRef.current
       if (!el || !el.isConnected) return
         if (!m || !(m as any)._loaded || !(m as any)._mapPane) return
-          try {
-            m.invalidateSize()
-          } catch {}
+          try { m.invalidateSize() } catch {}
     }
 
     ;(async () => {
@@ -73,10 +60,6 @@ export default function MapView({ routes, className }: Props) {
 
           if (host.clientHeight === 0) host.style.minHeight = "60vh"
 
-            // HARTE GUARDS: Vor Neu-Init Host bereinigen
-            cleanupLeafletContainer(host)
-
-            // Workaround: internen RO während Init deaktivieren
             const SavedRO = (window as any).ResizeObserver
             ;(window as any).ResizeObserver = undefined
             let map: any
@@ -101,8 +84,6 @@ export default function MapView({ routes, className }: Props) {
             const ro = new ResizeObserver(() => safeInvalidate())
             ro.observe(host)
             roRef.current = ro
-
-            // TODO: routes rendern falls benötigt
     })()
 
     return () => {
@@ -111,16 +92,24 @@ export default function MapView({ routes, className }: Props) {
         window.removeEventListener("resize", winResizeRef.current)
         winResizeRef.current = null
       }
-      if (roRef.current && hostRef.current) {
-        try { roRef.current.unobserve(hostRef.current) } catch {}
-        roRef.current.disconnect()
-        roRef.current = null
-      }
-      if (mapRef.current) {
-        try { mapRef.current.remove() } finally { mapRef.current = null }
-      }
-      if (hostRef.current) cleanupLeafletContainer(hostRef.current)
+      // vor Remove Pointer-Events kappen, um Race bei mousedown zu verhindern
+      if (hostRef.current) hostRef.current.style.pointerEvents = "none"
+        if (roRef.current && hostRef.current) {
+          try { roRef.current.unobserve(hostRef.current) } catch {}
+          roRef.current.disconnect()
+          roRef.current = null
+        }
+        if (mapRef.current) {
+          try { mapRef.current.remove() } finally { mapRef.current = null }
+        }
     }
+  }, []) // WICHTIG: keine Abhängigkeit zu routes
+
+  // (optional) spätere Routen-Zeichnung hier ergänzen, ohne die Map neu zu erstellen
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+      // TODO: Routen als Layer hinzufügen/aktualisieren
   }, [routes])
 
   return (

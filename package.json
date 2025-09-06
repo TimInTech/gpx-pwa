@@ -8,7 +8,12 @@
     "lint": "next lint",
     "start": "next start",
     "predev": "esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js",
-    "prebuild": "esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js"
+    "prebuild": "esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js",
+    "test": "vitest run --pool=threads --maxWorkers=1 --fileParallelism=false",
+    "test:watch": "vitest --pool=threads --maxWorkers=1 --fileParallelism=false",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "test:all": "npm run test && npm run e2e"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -76,6 +81,8 @@
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
     "tw-animate-css": "1.3.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.0.5",
+    "@playwright/test": "^1.45.0"
   }
 }
