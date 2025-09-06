@@ -17,3 +17,7 @@ Thumbs.db
 
 # Build-Artefakte
 public/parse.worker.js
+
+# editor swap
+*.swp
+*.kate-swp
