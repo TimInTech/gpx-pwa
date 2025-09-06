@@ -6,10 +6,6 @@ type RouteLike = {
   date?: string | null
 }
 
-/**
- * Nimmt – falls vorhanden – die manuell gesetzte route.color.
- * Sonst Auto-Farbe aus getRouteColor(date, periodKey).
- */
 export function resolveRouteColor(
   route: RouteLike | null | undefined,
   periodKey: "week" | "month" | "year" = "month",
