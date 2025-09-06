@@ -5,12 +5,16 @@ import dynamic from "next/dynamic"
 
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { GPXImport } from "@/components/gpx-import"
-// MapView ist Default-Export und muss ohne SSR geladen werden
-const MapView = dynamic(() => import("@/components/map-view"), { ssr: false })
 import { RouteManagement } from "@/components/route-management"
 import { OfflineIndicator } from "@/components/offline-indicator"
 import type { ViewMode, Route } from "@/lib/types"
 import { gpxStorage } from "@/lib/storage/db"
+
+// WICHTIG: named export korrekt auflösen + SSR aus
+const MapView = dynamic(
+  () => import("@/components/map-view").then((m) => m.MapView),
+                        { ssr: false }
+)
 
 export default function HomePage() {
   const [activeView, setActiveView] = useState<ViewMode>("map")
@@ -56,14 +60,17 @@ export default function HomePage() {
         <p className="text-muted-foreground">Routen werden geladen...</p>
         </div>
       ) : (
-        // MapView ist dynamisch importiert (kein SSR). Props wie className/routes sind optional.
         <MapView routes={routes} className="h-full" />
       )}
       </div>
     )}
 
     {activeView === "routes" && (
-      <RouteManagement routes={routes} onRoutesChange={handleRoutesChange} isLoading={isLoading} />
+      <RouteManagement
+      routes={routes}
+      onRoutesChange={handleRoutesChange}
+      isLoading={isLoading}
+      />
     )}
 
     {activeView === "import" && <GPXImport onImportComplete={handleImportComplete} />}
