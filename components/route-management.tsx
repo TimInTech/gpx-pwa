@@ -369,7 +369,7 @@ export function RouteManagement({ routes, onRoutesChange, isLoading }: RouteMana
 
           {/* Route Cards */}
           {filteredAndSortedRoutes.map((route) => {
-            const color = route.color || getRouteColor(route.date, route.period_key)
+            const color = route.color || resolveRouteColor(route, "month")
             const isSelected = selectedRoutes.has(route.id)
 
             return (
@@ -385,7 +385,7 @@ export function RouteManagement({ routes, onRoutesChange, isLoading }: RouteMana
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <div className="w-3 h-3 rounded-full border" style={{ backgroundColor: color }} />
+                            <div className="w-3 h-3 rounded-full border" style={{ backgroundColor: resolveRouteColor(route, "month")}} />
                             <h3 className="font-semibold font-heading truncate">{route.name}</h3>
                             {route.category && (
                               <Badge variant="outline" className="text-xs">
@@ -569,7 +569,7 @@ function EditRouteDialog({
 }: { route: Route; onSave: (route: Route) => void; onClose: () => void }) {
   const [name, setName] = useState(route.name)
   const [category, setCategory] = useState(route.category || "")
-  const [color, setColor] = useState(route.color || getRouteColor(route.date, route.period_key))
+  const [color, setColor] = useState(route.color || resolveRouteColor(route, "month"))
 
   const handleSave = () => {
     const updatedRoute: Route = {
@@ -603,7 +603,7 @@ function EditRouteDialog({
             <Label>Farbe</Label>
             <div className="flex items-center gap-2">
               <Input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="w-20 h-10" />
-              <div className="w-4 h-4 rounded-full border" style={{ backgroundColor: color }} />
+              <div className="w-4 h-4 rounded-full border" style={{ backgroundColor: resolveRouteColor(route, "month")}} />
             </div>
           </div>
 
