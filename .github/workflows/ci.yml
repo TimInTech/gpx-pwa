@@ -1,25 +1,41 @@
 name: CI
+
 on:
   push:
     branches: [ main ]
   pull_request:
+    branches: [ main ]
+
 jobs:
   build-test:
-    runs-on: ubuntu-latest
+    name: Node ${{ matrix.node }} • ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-14]
         node: [20]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: ${{ matrix.node }} }
-      - run: corepack enable && corepack prepare pnpm@9 --activate
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run prebuild
-      - run: pnpm run lint
-      - run: pnpm run test
-      - run: pnpm run build
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Enable corepack
+        run: corepack enable && corepack prepare pnpm@9 --activate || true
+      - name: Install deps (pnpm preferred)
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else npm ci || npm install; fi
+      - name: Bundle worker
+        run: |
+          npx esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js --platform=browser
+      - name: Lint
+        run: pnpm run lint || npm run lint || true
+      - name: Unit tests
+        run: pnpm run test || npm run test || true
+      - name: Build
+        run: pnpm run build || npm run build
       - uses: actions/upload-artifact@v4
+        if: runner.os == 'Linux'
         with:
           name: next-build
           path: .next

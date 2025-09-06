@@ -1,0 +1,16 @@
+version: '3.9'
+services:
+  gpx-pwa:
+    build: .
+    image: gpx-pwa:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+

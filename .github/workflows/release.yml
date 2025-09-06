@@ -1,7 +1,9 @@
 name: Release
+
 on:
   push:
-    tags: ["v*.*.*"]
+    tags: ["v*.*.*", "v*"]
+
 jobs:
   docker:
     runs-on: ubuntu-latest
