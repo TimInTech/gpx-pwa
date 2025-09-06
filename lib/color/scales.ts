@@ -1,57 +1,69 @@
-export interface ColorScale {
-  week: string[]
-  month: string[]
-  year: string[]
+// lib/color/scales.ts
+// Robust color selection that never throws, even on unexpected inputs.
+const defaultPalette = [
+  "#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4",
+  "#84cc16", "#ec4899", "#14b8a6", "#f97316", "#22c55e", "#3b82f6",
+]
+
+// Keep keys aligned with callers: "week" | "month" | "year"
+export const routeColorScales: Record<"week"|"month"|"year", string[]> = {
+  week:  defaultPalette,
+  month: defaultPalette,
+  year:  defaultPalette,
 }
 
-// Nature-inspired color palette for different time periods
-export const routeColorScales: ColorScale = {
-  week: [
-    "#15803d", // green-700 - current week
-    "#16a34a", // green-600 - last week
-    "#22c55e", // green-500 - 2 weeks ago
-    "#4ade80", // green-400 - 3 weeks ago
-    "#86efac", // green-300 - older weeks
-  ],
-  month: [
-    "#15803d", // green-700 - current month
-    "#ca8a04", // yellow-600 - last month
-    "#ea580c", // orange-600 - 2 months ago
-    "#dc2626", // red-600 - 3 months ago
-    "#7c3aed", // violet-600 - older months
-  ],
-  year: [
-    "#15803d", // green-700 - current year
-    "#0891b2", // cyan-600 - last year
-    "#7c3aed", // violet-600 - 2 years ago
-    "#dc2626", // red-600 - 3 years ago
-    "#6b7280", // gray-500 - older years
-  ],
+function safePalette(periodKey?: string): string[] {
+  const p = (periodKey === "week" || periodKey === "month" || periodKey === "year")
+    ? routeColorScales[periodKey]
+    : undefined
+  const fall = Array.isArray(defaultPalette) && defaultPalette.length ? defaultPalette : ["#888"]
+  return Array.isArray(p) && p.length ? p : fall
 }
 
-export function getRouteColor(date: string | null, periodKey: "week" | "month" | "year"): string {
-  if (!date) return routeColorScales[periodKey][0]
+function clampIndex(idx: number, len: number): number {
+  if (!Number.isFinite(idx) || !Number.isFinite(len) || len <= 0) return 0
+  const m = idx % len
+  return m < 0 ? m + len : m
+}
 
-  const routeDate = new Date(date)
-  const now = new Date()
-  const colors = routeColorScales[periodKey]
+function isValidDate(d: Date) {
+  return d instanceof Date && !Number.isNaN(d.getTime())
+}
 
+/**
+ * Pick a stable color for a given date and period bucket.
+ * - date: ISO string or null/undefined
+ * - periodKey: "week" | "month" | "year"  (defaults to "month")
+ */
+export function getRouteColor(
+  date?: string | null,
+  periodKey: "week" | "month" | "year" = "month"
+): string {
+  const palette = safePalette(periodKey)
+  if (!date) return palette[0]
+
+  const d = new Date(date)
+  if (!isValidDate(d)) return palette[0]
+
+  let index = 0
   switch (periodKey) {
     case "week": {
-      const weeksDiff = Math.floor((now.getTime() - routeDate.getTime()) / (1000 * 60 * 60 * 24 * 7))
-      return colors[Math.min(weeksDiff, colors.length - 1)]
+      // Day of week [0..6]
+      index = d.getUTCDay()
+      break
     }
     case "month": {
-      const monthsDiff = (now.getFullYear() - routeDate.getFullYear()) * 12 + (now.getMonth() - routeDate.getMonth())
-      return colors[Math.min(monthsDiff, colors.length - 1)]
+      // Day of month [1..31] → shift to [0..30]
+      index = Math.max(0, d.getUTCDate() - 1)
+      break
     }
     case "year": {
-      const yearsDiff = now.getFullYear() - routeDate.getFullYear()
-      return colors[Math.min(yearsDiff, colors.length - 1)]
+      // Month index [0..11]
+      index = d.getUTCMonth()
+      break
     }
-    default:
-      return colors[0]
   }
+  return palette[clampIndex(index, palette.length)]
 }
 
 export function getPeriodLabel(periodKey: "week" | "month" | "year", index: number): string {
@@ -66,3 +78,4 @@ export function getPeriodLabel(periodKey: "week" | "month" | "year", index: numb
       return "Unbekannt"
   }
 }
+
