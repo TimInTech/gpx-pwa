@@ -38,47 +38,35 @@ npm install
 ```
 
 ## Entwicklung
+
 ```bash
 npm run dev
 # bei Port-Konflikt:
 PORT=3001 npm run dev
-# pnpm:
-# pnpm run dev
-# PORT=3001 pnpm run dev
 ```
 
 ## Produktion
+
 ```bash
 npm run build
 npm run start
 # bei Port-Konflikt:
 # PORT=3001 npm run start
-# pnpm:
-# pnpm run build && pnpm run start
-# PORT=3001 pnpm run start
 ```
 
 ## Web-Worker
-Parser in `lib/gpx/parse.worker.ts`. Bundling nach `public/parse.worker.js` via `predev`/`prebuild`.
 
-```bash
-npx esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js --platform=browser
-# pnpm:
-# pnpm exec esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js --platform=browser
-```
+Wird durch `predev`/`prebuild` nach `public/parse.worker.js` gebündelt.
 
 ## Service Worker
-Registrierung über `/api/sw`. In Entwicklung ohne Cache für `/_next` und `/api`. Offline-Fallback unter `/_offline`.
 
-## Fehlerseiten
-- `app/error.tsx`
-- `app/global-error.tsx`
-- `app/not-found.tsx`
+Registrierung über `/api/sw`. Offline-Fallback unter `/_offline`.
 
-## .gitignore
-Empfohlen: `node_modules/`, `.next/`, `.env*`, `public/parse.worker.js`.
+## Docker
 
-## Setup-Skript
 ```bash
-./scripts/setup.sh
+docker build -t gpx-pwa:fix .
+docker run --rm -p 3000:3000 --name gpx-pwa gpx-pwa:fix
+curl -f http://localhost:3000 || echo FAIL
 ```
+

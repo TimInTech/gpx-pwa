@@ -1,16 +1,17 @@
-version: '3.9'
 services:
   gpx-pwa:
     build: .
     image: gpx-pwa:latest
+    container_name: gpx-pwa
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
     read_only: true
     tmpfs:
-      - /tmp:mode=1777
+      - /tmp
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
-

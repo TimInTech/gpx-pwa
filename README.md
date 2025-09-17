@@ -38,60 +38,39 @@ npm install
 ```
 
 ## Development
+
 ```bash
 npm run dev
 # on port conflict:
 PORT=3001 npm run dev
-# pnpm:
-# pnpm run dev
-# PORT=3001 pnpm run dev
 ```
 
 ## Production
+
 ```bash
 npm run build
 npm run start
 # on port conflict:
 # PORT=3001 npm run start
-# pnpm:
-# pnpm run build && pnpm run start
-# PORT=3001 pnpm run start
 ```
 
 ## Web Worker
-GPX parser lives in `lib/gpx/parse.worker.ts` (no DOMParser). It is bundled to `public/parse.worker.js` by `predev`/`prebuild`.
+
+Bundled by `predev`/`prebuild` to `public/parse.worker.js`.
 
 ```bash
 npx esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js --platform=browser
-# pnpm:
-# pnpm exec esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js --platform=browser
 ```
-
-<details>
-<summary>Worker skeleton</summary>
-
-```ts
-import { XMLParser } from "fast-xml-parser"
-type InMsg = { id: string; type: "parse-gpx"; data: { content: string; filename: string; options: any } }
-type OutOk = { id: string; type: "parse-success"; data: { routes: any[] } }
-type OutErr = { id: string; type: "parse-error"; data: { error: string } }
-const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@_", trimValues: true })
-self.onmessage = (e: MessageEvent<InMsg>) => { /* parse + postMessage(...) */ }
-```
-</details>
 
 ## Service Worker
-Registered via `/api/sw`. In development it avoids caching `/_next` and `/api`. Offline fallback at `/_offline`.
 
-## Error pages
-- `app/error.tsx`
-- `app/global-error.tsx`
-- `app/not-found.tsx`
+Registered via `/api/sw`. Offline fallback at `/_offline`.
 
-## .gitignore
-Recommend: `node_modules/`, `.next/`, `.env*`, `public/parse.worker.js`.
+## Docker
 
-## Setup script
 ```bash
-./scripts/setup.sh
+docker build -t gpx-pwa:fix .
+docker run --rm -p 3000:3000 --name gpx-pwa gpx-pwa:fix
+curl -f http://localhost:3000 || echo FAIL
 ```
+
