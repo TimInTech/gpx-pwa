@@ -4,9 +4,8 @@ Dieses Projekt ist eine Next.js-14.2.32-Anwendung zur Verwaltung von GPX-Routen.
 Beispielpfad: `~/Downloads/gpx-pwa`.
 
 <p align="center">
-    <img src="docs/assets/pwa-gpx3.png" alt="Kartenansicht" width="420"/>  
-<img src="docs/assets/pwa-gpx.png" alt="Import-Ansicht" width="420"/>
-  
+  <img src="docs/assets/pwa-gpx3.png" alt="Kartenansicht" width="420"/>
+  <img src="docs/assets/pwa-gpx.png" alt="Import-Ansicht" width="420"/>
 </p>
 
 ## Voraussetzungen
