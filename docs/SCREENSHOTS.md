@@ -1,7 +1,7 @@
-# 📸 Screenshots – GPX PWA
+# 📸 Screenshots – GPX Route Manager PWA
 
-## Startansicht
-![Startansicht](./assets/pwa-gpx.png)
+## Import-Ansicht
+<img src="./assets/pwa-gpx.png" alt="Import-Ansicht" width="700"/>
 
-## Karten- und Routing-Ansicht
-![Routing](./assets/pwa-gpx2.png)
+## Kartenansicht
+<img src="./assets/pwa-gpx3.png" alt="Kartenansicht" width="700"/>

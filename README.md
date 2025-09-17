@@ -1,25 +1,37 @@
 # GPX Route Manager PWA
 
-Dieses Projekt ist eine Next.js-14.2.32-Anwendung zur Verwaltung von GPX-Routen.
+Dieses Projekt ist eine Next.js-14.2.32-Anwendung zur Verwaltung von GPX-Routen.  
 Beispielpfad: `~/Downloads/gpx-pwa`.
 
+<p align="center">
+    <img src="docs/assets/pwa-gpx3.png" alt="Kartenansicht" width="420"/>  
+<img src="docs/assets/pwa-gpx.png" alt="Import-Ansicht" width="420"/>
+  
+</p>
+
 ## Voraussetzungen
+
 - Node.js ≥ 20
 - npm (Standard) oder pnpm
 - Git (optional)
 
 ## Installation
+
 ```bash
 cd ~/Downloads/gpx-pwa
 npm install
 ```
+
 Mit pnpm:
+
 ```bash
 pnpm install
 ```
 
 ## Web-Worker
+
 Der GPX-Parser befindet sich in `lib/gpx/parse.worker.ts` und nutzt `fast-xml-parser` ohne DOMParser:
+
 ```ts
 import { XMLParser } from "fast-xml-parser"
 
@@ -79,48 +91,65 @@ self.onmessage = (e: MessageEvent<InMsg>) => {
 ```
 
 Der Worker wird mit esbuild nach `public/parse.worker.js` gebündelt:
+
 ```bash
 npx esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js --platform=browser
 ```
+
 Mit pnpm:
+
 ```bash
 pnpm exec esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js --platform=browser
 ```
+
 Die Skripte `predev` und `prebuild` in `package.json` führen diesen Befehl automatisch aus.
 
 ## Service Worker
+
 Der Service Worker wird über `/api/sw` registriert. Er ist für die Entwicklung sicher und cached keine Pfade unter `/_next` oder `/api`.
 
 ## Fehlerseiten
+
 - `app/error.tsx`
 - `app/global-error.tsx`
 - `app/not-found.tsx`
 
 ## Starten
+
 Entwicklung:
+
 ```bash
 npm run dev
 ```
+
 Port-Konflikt:
+
 ```bash
 PORT=3001 npm run dev
 ```
+
 Mit pnpm:
+
 ```bash
 pnpm run dev
 PORT=3001 pnpm run dev
 ```
 
 Produktion:
+
 ```bash
 npm run build
 npm run start
 ```
+
 Port-Konflikt:
+
 ```bash
 PORT=3001 npm run start
 ```
+
 Mit pnpm:
+
 ```bash
 pnpm run build
 pnpm run start
@@ -128,10 +157,13 @@ PORT=3001 pnpm run start
 ```
 
 ## .gitignore
+
 Empfohlen: `node_modules/`, `.next/`, `.env*`, `public/parse.worker.js`.
 
 ## Setup-Skript
+
 Alternativ kann die Einrichtung über das Skript erfolgen:
+
 ```bash
 ./scripts/setup.sh
 ```
