@@ -1,168 +1,97 @@
-# GPX Route Manager PWA
-
-Dieses Projekt ist eine Next.js-14.2.32-Anwendung zur Verwaltung von GPX-Routen.  
-Beispielpfad: `~/Downloads/gpx-pwa`.
-
-<p align="center">
-  <img src="docs/assets/pwa-gpx3.png" alt="Kartenansicht" width="420"/>
-  <img src="docs/assets/pwa-gpx.png" alt="Import-Ansicht" width="420"/>
+<p align="right">
+  <a href="./README.md" title="English"><img src="https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1e7.png" height="14" alt="UK flag" /> English</a> |
+  <a href="./README.de.md" title="Deutsch"><img src="https://github.githubassets.com/images/icons/emoji/unicode/1f1e9-1f1ea.png" height="14" alt="DE flag" /> Deutsch</a>
 </p>
 
-## Voraussetzungen
+# GPX Route Manager PWA
 
+This application bundles multiple GPX files from bike navigation devices or exports from services like Komoot or Strava and renders them on a map. Identical routes are merged and shown once. Routes can be toggled, color-marked, and sorted.
+
+<p align="center">
+  <img src="docs/assets/pwa-gpx3.png" alt="Map view" width="420"/>
+  <img src="docs/assets/pwa-gpx.png" alt="Import view" width="420"/>
+</p>
+
+<p align="center">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=nextjs,ts,react,nodejs,vercel,docker,nginx,vitest,playwright,eslint" alt="Tech stack icons" />
+  </a>
+</p>
+
+## Features
+- Import multiple GPX files; deduplicate identical tracks.
+- Toggle visibility, color, and sorting per route.
+- PWA: installable, offline-ready, clean caching with fallback.
+- Fast GPX parsing in a Web Worker (fast-xml-parser).
+- Persistent storage via IndexedDB/OPFS; export/import (JSON/GPX/ZIP).
+
+## Prerequisites
 - Node.js ≥ 20
-- npm (Standard) oder pnpm
+- npm or pnpm
 - Git (optional)
 
 ## Installation
-
 ```bash
 cd ~/Downloads/gpx-pwa
 npm install
+# or: pnpm install
 ```
 
-Mit pnpm:
-
+## Development
 ```bash
-pnpm install
+npm run dev
+# on port conflict:
+PORT=3001 npm run dev
+# pnpm:
+# pnpm run dev
+# PORT=3001 pnpm run dev
 ```
 
-## Web-Worker
-
-Der GPX-Parser befindet sich in `lib/gpx/parse.worker.ts` und nutzt `fast-xml-parser` ohne DOMParser:
-
-```ts
-import { XMLParser } from "fast-xml-parser"
-
-type InMsg = {
-  id: string
-  type: "parse-gpx"
-  data: { content: string; filename: string; options: any }
-}
-
-type OutOk = { id: string; type: "parse-success"; data: { routes: any[] } }
-type OutErr = { id: string; type: "parse-error"; data: { error: string } }
-
-const parser = new XMLParser({
-  ignoreAttributes: false,
-  attributeNamePrefix: "@_",
-  trimValues: true,
-})
-
-self.onmessage = (e: MessageEvent<InMsg>) => {
-  const { id, type, data } = e.data
-  if (type !== "parse-gpx") return
-
-  try {
-    const obj = parser.parse(data.content)
-    const gpx = obj.gpx ?? obj.GPX ?? obj
-
-    const tracks: any[] = []
-    if (gpx?.trk) {
-      const trks = Array.isArray(gpx.trk) ? gpx.trk : [gpx.trk]
-      for (const trk of trks) {
-        const name = trk.name ?? data.filename
-        const segs = trk.trkseg ? (Array.isArray(trk.trkseg) ? trk.trkseg : [trk.trkseg]) : []
-        const points: any[] = []
-
-        for (const seg of segs) {
-          const pts = seg.trkpt ? (Array.isArray(seg.trkpt) ? seg.trkpt : [seg.trkpt]) : []
-          for (const p of pts) {
-            const lat = Number(p["@_lat"])
-            const lon = Number(p["@_lon"])
-            const ele = p.ele !== undefined ? Number(p.ele) : undefined
-            const time = p.time
-            if (Number.isFinite(lat) && Number.isFinite(lon)) {
-              points.push({ lat, lon, ele, time })
-            }
-          }
-        }
-
-        tracks.push({ id: `${id}:${tracks.length}`, name, points })
-      }
-    }
-
-    ;(self as any).postMessage({ id, type: "parse-success", data: { routes: tracks } } as OutOk)
-  } catch (err: any) {
-    ;(self as any).postMessage({ id, type: "parse-error", data: { error: err?.message || String(err) } } as OutErr)
-  }
-}
+## Production
+```bash
+npm run build
+npm run start
+# on port conflict:
+# PORT=3001 npm run start
+# pnpm:
+# pnpm run build && pnpm run start
+# PORT=3001 pnpm run start
 ```
 
-Der Worker wird mit esbuild nach `public/parse.worker.js` gebündelt:
+## Web Worker
+GPX parser lives in `lib/gpx/parse.worker.ts` (no DOMParser). It is bundled to `public/parse.worker.js` by `predev`/`prebuild`.
 
 ```bash
 npx esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js --platform=browser
+# pnpm:
+# pnpm exec esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js --platform=browser
 ```
 
-Mit pnpm:
+<details>
+<summary>Worker skeleton</summary>
 
-```bash
-pnpm exec esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js --platform=browser
+```ts
+import { XMLParser } from "fast-xml-parser"
+type InMsg = { id: string; type: "parse-gpx"; data: { content: string; filename: string; options: any } }
+type OutOk = { id: string; type: "parse-success"; data: { routes: any[] } }
+type OutErr = { id: string; type: "parse-error"; data: { error: string } }
+const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@_", trimValues: true })
+self.onmessage = (e: MessageEvent<InMsg>) => { /* parse + postMessage(...) */ }
 ```
-
-Die Skripte `predev` und `prebuild` in `package.json` führen diesen Befehl automatisch aus.
+</details>
 
 ## Service Worker
+Registered via `/api/sw`. In development it avoids caching `/_next` and `/api`. Offline fallback at `/_offline`.
 
-Der Service Worker wird über `/api/sw` registriert. Er ist für die Entwicklung sicher und cached keine Pfade unter `/_next` oder `/api`.
-
-## Fehlerseiten
-
+## Error pages
 - `app/error.tsx`
 - `app/global-error.tsx`
 - `app/not-found.tsx`
 
-## Starten
-
-Entwicklung:
-
-```bash
-npm run dev
-```
-
-Port-Konflikt:
-
-```bash
-PORT=3001 npm run dev
-```
-
-Mit pnpm:
-
-```bash
-pnpm run dev
-PORT=3001 pnpm run dev
-```
-
-Produktion:
-
-```bash
-npm run build
-npm run start
-```
-
-Port-Konflikt:
-
-```bash
-PORT=3001 npm run start
-```
-
-Mit pnpm:
-
-```bash
-pnpm run build
-pnpm run start
-PORT=3001 pnpm run start
-```
-
 ## .gitignore
+Recommend: `node_modules/`, `.next/`, `.env*`, `public/parse.worker.js`.
 
-Empfohlen: `node_modules/`, `.next/`, `.env*`, `public/parse.worker.js`.
-
-## Setup-Skript
-
-Alternativ kann die Einrichtung über das Skript erfolgen:
-
+## Setup script
 ```bash
 ./scripts/setup.sh
 ```
