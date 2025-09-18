@@ -1,57 +1,108 @@
-<p align="right"> <a href="./README.md" title="English"><img src="https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1e7.png" height="14" alt="UK flag" /> English</a> | <a href="./README.de.md" title="Deutsch"><img src="https://github.githubassets.com/images/icons/emoji/unicode/1f1e9-1f1ea.png" height="14" alt="DE flag" /> Deutsch</a> </p>
-GPX Route Manager PWA
-Diese Anwendung bündelt mehrere GPX-Dateien von Fahrrad-Navis oder Exporten aus Diensten wie Komoot oder Strava und stellt sie auf einer Karte dar. Identische Routen werden zusammengeführt und nur einmal angezeigt. Routen können ein-/ausgeblendet, farblich markiert und sortiert werden.
 
-<p align="center"> <img src="docs/assets/pwa-gpx3.png" alt="Kartenansicht" width="420"/> <img src="docs/assets/pwa-gpx.png" alt="Import-Ansicht" width="420"/> </p> <p align="center"> <a href="https://skillicons.dev"> <img src="https://skillicons.dev/icons?i=nextjs,ts,react,nodejs,vercel,docker,nginx,vitest,playwright,eslint" alt="Tech-Stack-Icons" /> </a> </p>
-Funktionen
-Import mehrerer GPX-Dateien, Zusammenführung identischer Tracks
+<p align="right">
+  <a href="./README.md" title="English"><img src="https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1e7.png" height="14" alt="UK flag" /> English</a> |
+  <a href="./README.de.md" title="Deutsch"><img src="https://github.githubassets.com/images/icons/emoji/unicode/1f1e9-1f1ea.png" height="14" alt="DE flag" /> Deutsch</a>
+</p>
 
-Sichtbarkeit, Farbcodierung und Sortierung pro Route
+# GPX Route Manager PWA
 
-PWA: installierbar, offline nutzbar, sauberer Cache mit Fallback
+PWA zum Import mehrerer GPX-Dateien (z. B. von Fahrrad-Navis oder Komoot/Strava-Exporten), zum Zusammenführen identischer Routen und zur Karten-Visualisierung/Verwaltung. Routen lassen sich ein-/ausblenden, farblich markieren und sortieren.
 
-Schnelles GPX-Parsing im Web-Worker (fast-xml-parser)
+<p align="center">
+  <img src="docs/assets/pwa-gpx3.png" alt="Kartenansicht" width="420"/>
+  <img src="docs/assets/pwa-gpx.png" alt="Import-Ansicht" width="420"/>
+</p>
 
-Persistenz über IndexedDB/OPFS; Export/Import (JSON/GPX/ZIP)
+## Funktionen
 
-Voraussetzungen
-Node.js ≥ 20
+* Mehrfach-Import; Deduplizierung identischer Tracks
+* Sichtbarkeit, Farbe, Sortierung pro Route
+* PWA: installierbar, Offline-Fallback, Tile-Caching (OSM)
+* Schnelles Parsing im Web-Worker (`fast-xml-parser`)
+* Persistenz (IndexedDB/OPFS) mit Export/Import
 
-npm oder pnpm
+## Technik
 
-Git (optional)
+* Next.js 14 (App-Router) mit „standalone“-Output für Docker/Runtime
+* Service Worker via `/api/sw` (Offline-Fallback, OSM-Tiles)
+* Worker-Bundle nach `public/parse.worker.js` (über predev/prebuild)
 
-Installation
-bash
-Code kopieren
-cd ~/github_repos/gpx-pwa
-npm install
-# alternativ: pnpm install
-Entwicklung
-bash
-Code kopieren
+## Voraussetzungen
+
+* Node.js ≥ 20
+* npm oder pnpm
+
+## Schnellstart (Lokal)
+
+```bash
+# Installation
+npm install         # alternativ: pnpm install
+
+# Entwicklung
 npm run dev
-# bei Port-Konflikt:
+# bei Portkonflikt:
 PORT=3001 npm run dev
-Produktion
-bash
-Code kopieren
+
+# Produktion
 npm run build
 npm run start
-# bei Port-Konflikt:
-# PORT=3001 npm run start
-Web-Worker
-Wird durch predev/prebuild nach public/parse.worker.js gebündelt.
+# optional anderer Port:
+PORT=3001 npm run start
+```
 
-bash
-Code kopieren
+### Worker manuell (normalerweise automatisch)
+
+```bash
 npx esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js --platform=browser
-Service Worker
-Registrierung über /api/sw. Offline-Fallback unter /_offline.
+```
 
-Docker
-bash
-Code kopieren
+## Docker
+
+### Build & Run
+
+```bash
 docker build -t gpx-pwa:latest .
 docker run --rm -p 3000:3000 --name gpx-pwa gpx-pwa:latest
-curl -f http://localhost:3000 || echo FAIL
+```
+
+### Docker-Compose
+
+```yaml
+services:
+  gpx-pwa:
+    build: .
+    image: gpx-pwa:latest
+    container_name: gpx-pwa
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+```
+
+Start:
+
+```bash
+docker compose up --build
+```
+
+## PWA/Offline
+
+Der SW liefert App-Cache, Tile-Cache (stale-while-revalidate) für `tile.openstreetmap.org` und Fallback auf `/offline.html`. Next-Interna (`/_next`) und `/api` werden nicht gecacht.
+
+## Tests
+
+Vitest (Unit) & Playwright (E2E): `npm run test`, `npm run e2e`.
+
+## Troubleshooting
+
+* **EADDRINUSE / Port belegt**: anderen Port setzen (`PORT=3001`) oder Prozess beenden.
+* **Container-Name bereits vergeben**: bestehenden Container entfernen/umbenennen (`docker rm -f gpx-pwa`) oder anderen `--name` nutzen.
+* **Healthcheck schlägt fehl**: intern `http://127.0.0.1:3000/` prüfen.
