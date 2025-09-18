@@ -19,11 +19,11 @@ This application bundles multiple GPX files from bike navigation devices or expo
 </p>
 
 ## Features
-- Import multiple GPX files; deduplicate identical tracks.
-- Toggle visibility, color, and sorting per route.
-- PWA: installable, offline-ready, clean caching with fallback.
-- Fast GPX parsing in a Web Worker (fast-xml-parser).
-- Persistent storage via IndexedDB/OPFS; export/import (JSON/GPX/ZIP).
+- Import multiple GPX files; deduplicate identical tracks
+- Toggle visibility, color, and sorting per route
+- PWA: installable, offline-ready, clean caching with fallback
+- Fast GPX parsing in a Web Worker (fast-xml-parser)
+- Persistent storage via IndexedDB/OPFS; export/import (JSON/GPX/ZIP)
 
 ## Prerequisites
 - Node.js ≥ 20
@@ -32,45 +32,34 @@ This application bundles multiple GPX files from bike navigation devices or expo
 
 ## Installation
 ```bash
-cd ~/Downloads/gpx-pwa
+cd ~/github_repos/gpx-pwa
 npm install
 # or: pnpm install
-```
-
-## Development
-
-```bash
+Development
+bash
+Code kopieren
 npm run dev
 # on port conflict:
 PORT=3001 npm run dev
-```
-
-## Production
-
-```bash
+Production
+bash
+Code kopieren
 npm run build
 npm run start
 # on port conflict:
 # PORT=3001 npm run start
-```
+Web Worker
+Bundled by predev/prebuild to public/parse.worker.js.
 
-## Web Worker
-
-Bundled by `predev`/`prebuild` to `public/parse.worker.js`.
-
-```bash
+bash
+Code kopieren
 npx esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js --platform=browser
-```
+Service Worker
+Registered via /api/sw. Offline fallback at /_offline.
 
-## Service Worker
-
-Registered via `/api/sw`. Offline fallback at `/_offline`.
-
-## Docker
-
-```bash
-docker build -t gpx-pwa:fix .
-docker run --rm -p 3000:3000 --name gpx-pwa gpx-pwa:fix
+Docker
+bash
+Code kopieren
+docker build -t gpx-pwa:latest .
+docker run --rm -p 3000:3000 --name gpx-pwa gpx-pwa:latest
 curl -f http://localhost:3000 || echo FAIL
-```
-

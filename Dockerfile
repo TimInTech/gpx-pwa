@@ -1,18 +1,15 @@
 # syntax=docker/dockerfile:1
 ARG NODE_VERSION=20-bullseye-slim
-
 FROM node:${NODE_VERSION} AS deps
 WORKDIR /app
 COPY package.json package-lock.json* pnpm-lock.yaml* ./
 RUN corepack enable || true && (npm ci || npm install)
-
 FROM node:${NODE_VERSION} AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx esbuild lib/gpx/parse.worker.ts --bundle --format=esm --outfile=public/parse.worker.js --platform=browser \
  && npm run build
-
 FROM node:${NODE_VERSION} AS runner
 ENV NODE_ENV=production
 ENV PORT=3000
