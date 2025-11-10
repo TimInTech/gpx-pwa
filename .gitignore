@@ -25,3 +25,6 @@ public/parse.worker.js
 # npm cache
 .npm-cache/
 .npmrc
+.venv/
+vendor/bundle/
+.bundle/
